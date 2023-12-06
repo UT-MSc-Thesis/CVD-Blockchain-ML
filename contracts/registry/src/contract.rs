@@ -12,11 +12,6 @@ pub fn instantiate(
     Ok(Response::new())
 }
 
-#[allow(dead_code)]
-pub fn execute(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Empty) -> StdResult<Response> {
-    unimplemented!()
-}
-
 pub fn query(_deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     use QueryMsg::*;
 
