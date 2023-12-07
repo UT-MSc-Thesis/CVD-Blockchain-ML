@@ -5,6 +5,6 @@ use thiserror::Error;
 pub enum ContractError {
     #[error("{0}")]
     StdError(#[from] StdError),
-    #[error("{sender} is not authorized to perform requested action")]
+    #[error("{sender} is not authorized to perform the requested action")]
     Unauthorized { sender: Addr },
 }
