@@ -16,11 +16,11 @@ pub fn instantiate(
 pub fn execute(
     deps: DepsMut,
     _env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Register { id, address } => execute::register(deps, id, address),
+        ExecuteMsg::Register { id, address } => execute::register(deps, info, id, address),
     }
 }
 
@@ -33,7 +33,18 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 mod execute {
     use super::*;
 
-    pub fn register(deps: DepsMut, id: String, address: Addr) -> Result<Response, ContractError> {
+    pub fn register(
+        deps: DepsMut,
+        info: MessageInfo,
+        id: String,
+        address: Addr,
+    ) -> Result<Response, ContractError> {
+        if OWNER.load(deps.storage).unwrap() != info.sender {
+            return Err(ContractError::Unauthorized {
+                sender: info.sender,
+            });
+        }
+
         PERSON_STORE.insert(deps.storage, &id, &Person { address: address })?;
         Ok(Response::new())
     }
