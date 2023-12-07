@@ -1,11 +1,16 @@
-use cosmwasm_std::Addr;
-use secret_toolkit_storage::{Item, Keymap};
+use cosmwasm_std::{Addr, Timestamp};
+use secret_toolkit_storage::Item;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct Person {
-    pub address: Addr,
+pub struct Record {
+    pub title: String,
+    pub timestamp: Timestamp,
+    pub description: String,
+    pub sex: String,
+    pub cholestrol: u32,
+    pub trestbps: u32,
 }
 
 pub static OWNER: Item<Addr> = Item::new(b"owner");
-pub static PERSON_STORE: Keymap<String, Person> = Keymap::new(b"person");
+// pub static RECORD_STORE: Keymap<String, Record> = Keymap::new(b"record");
