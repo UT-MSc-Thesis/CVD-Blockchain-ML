@@ -95,10 +95,38 @@ mod tests {
         let sample_id = "John Doe";
         let sample_address = Addr::unchecked("secret1");
 
-        execute(
+        instantiate(
             deps.as_mut(),
             env.clone(),
             mock_info("sender", &[]),
+            InstantiateMsg {
+                owner: Addr::unchecked("owner"),
+            },
+        )
+        .unwrap();
+
+        let err = execute(
+            deps.as_mut(),
+            env.clone(),
+            mock_info("sender", &[]),
+            ExecuteMsg::Register {
+                id: sample_id.to_owned(),
+                address: sample_address.clone(),
+            },
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            ContractError::Unauthorized {
+                sender: Addr::unchecked("sender")
+            },
+            err
+        );
+
+        execute(
+            deps.as_mut(),
+            env.clone(),
+            mock_info("owner", &[]),
             ExecuteMsg::Register {
                 id: sample_id.to_owned(),
                 address: sample_address.clone(),
