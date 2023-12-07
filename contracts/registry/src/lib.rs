@@ -4,6 +4,7 @@ use cosmwasm_std::{
 use msg::{ExecuteMsg, QueryMsg};
 
 mod contract;
+mod error;
 mod msg;
 mod state;
 

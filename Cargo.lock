@@ -389,6 +389,7 @@ dependencies = [
  "secret-cosmwasm-storage",
  "secret-toolkit-storage",
  "serde",
+ "thiserror",
 ]
 
 [[package]]
