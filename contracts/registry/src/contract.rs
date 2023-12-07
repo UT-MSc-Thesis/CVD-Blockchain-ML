@@ -1,6 +1,7 @@
-use crate::msg::{GreetResp, QueryMsg};
+use crate::msg::{ExecuteMsg, InfoResp, QueryMsg};
+use crate::state::{Person, PERSON_STORE};
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
+    to_binary, Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 };
 
 pub fn instantiate(
@@ -12,20 +13,39 @@ pub fn instantiate(
     Ok(Response::new())
 }
 
-pub fn query(_deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    use QueryMsg::*;
-
+pub fn execute(
+    deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    msg: ExecuteMsg,
+) -> StdResult<Response> {
     match msg {
-        Greet {} => to_binary(&query::greet()?),
+        ExecuteMsg::Register { id, address } => execute::register(deps, id, address),
+    }
+}
+
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    match msg {
+        QueryMsg::Info { id } => to_binary(&query::get_info(deps, id).unwrap()),
+    }
+}
+
+mod execute {
+    use super::*;
+
+    pub fn register(deps: DepsMut, id: String, address: Addr) -> StdResult<Response> {
+        PERSON_STORE.insert(deps.storage, &id, &Person { address: address })?;
+        Ok(Response::new())
     }
 }
 
 mod query {
     use super::*;
 
-    pub fn greet() -> StdResult<GreetResp> {
-        let resp = GreetResp {
-            message: "Hello World".to_owned(),
+    pub fn get_info(deps: Deps, id: String) -> StdResult<InfoResp> {
+        let person = PERSON_STORE.get(deps.storage, &id).unwrap();
+        let resp = InfoResp {
+            address: person.address,
         };
 
         Ok(resp)
@@ -40,7 +60,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn greet_query() {
+    fn run_instantiate() {
         let mut deps = mock_dependencies();
         let env = mock_env();
 
@@ -53,14 +73,40 @@ mod tests {
         .unwrap();
 
         assert_eq!(0, resp.messages.len());
+    }
 
-        let resp = query(deps.as_ref(), env, QueryMsg::Greet {}).unwrap();
-        let resp: GreetResp = from_binary(&resp).unwrap();
+    #[test]
+    fn run_register_get_info() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+        let sample_id = "John Doe";
+        let sample_address = Addr::unchecked("secret1");
+
+        execute(
+            deps.as_mut(),
+            env.clone(),
+            mock_info("sender", &[]),
+            ExecuteMsg::Register {
+                id: sample_id.to_owned(),
+                address: sample_address.clone(),
+            },
+        )
+        .unwrap();
+
+        let resp = query(
+            deps.as_ref(),
+            env,
+            QueryMsg::Info {
+                id: sample_id.to_owned(),
+            },
+        )
+        .unwrap();
+        let resp: InfoResp = from_binary(&resp).unwrap();
 
         assert_eq!(
             resp,
-            GreetResp {
-                message: "Hello World".to_owned()
+            InfoResp {
+                address: sample_address
             }
         );
     }

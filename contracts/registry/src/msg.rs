@@ -1,11 +1,17 @@
+use cosmwasm_std::Addr;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct GreetResp {
-    pub message: String,
+pub enum ExecuteMsg {
+    Register { id: String, address: Addr },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum QueryMsg {
-    Greet {},
+    Info { id: String },
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub struct InfoResp {
+    pub address: Addr,
 }
