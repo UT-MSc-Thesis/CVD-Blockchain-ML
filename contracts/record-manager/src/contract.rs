@@ -1,16 +1,23 @@
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::msg::{CallbackInfo, ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::OWNER;
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 pub fn instantiate(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
     OWNER.save(deps.storage, &msg.owner)?;
-    Ok(Response::new())
+
+    let callback_info = CallbackInfo {
+        offspring_address: env.contract.address,
+        owner_address: msg.owner,
+        owner_id: msg.owner_id,
+    };
+
+    Ok(Response::new().set_data(to_binary(&callback_info)?))
 }
 
 pub fn execute(
@@ -47,6 +54,7 @@ mod tests {
             mock_info("sender", &[]),
             InstantiateMsg {
                 owner: Addr::unchecked("owner"),
+                owner_id: "John Doe".to_string(),
             },
         )
         .unwrap();
