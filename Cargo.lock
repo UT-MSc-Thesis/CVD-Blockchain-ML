@@ -382,6 +382,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "record-manager"
+version = "0.1.0"
+dependencies = [
+ "secret-cosmwasm-std",
+ "secret-cosmwasm-storage",
+ "secret-toolkit-storage",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "registry"
 version = "0.1.0"
 dependencies = [
