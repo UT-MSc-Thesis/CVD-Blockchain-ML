@@ -20,6 +20,7 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct InfoResp {
     pub address: Addr,
+    pub contract_address: Addr,
 }
 
 #[derive(Deserialize)]

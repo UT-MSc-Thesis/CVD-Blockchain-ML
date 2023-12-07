@@ -67,7 +67,7 @@ mod execute {
                 None,
                 env.block.random.unwrap().to_string(),
                 1,
-                "code_hash".to_string(),
+                "0f912af5dd3b5ed5f63a8a252793f1371a9ea72e6390bdba118f2e252abd320b".to_string(),
                 None,
             )?,
             1,
@@ -84,6 +84,7 @@ mod query {
         let person = PERSON_STORE.get(deps.storage, &id).unwrap();
         let resp = InfoResp {
             address: person.address,
+            contract_address: person.contract_address,
         };
 
         Ok(resp)
@@ -203,7 +204,8 @@ mod tests {
         assert_eq!(
             resp,
             InfoResp {
-                address: sample_address
+                address: sample_address,
+                contract_address: Addr::unchecked("contract_address")
             }
         );
     }
