@@ -1,15 +1,15 @@
-use crate::msg::{ExecuteMsg, InfoResp, QueryMsg};
-use crate::state::{Person, PERSON_STORE};
-use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
-};
+use crate::error::ContractError;
+use crate::msg::{ExecuteMsg, InfoResp, InstantiateMsg, QueryMsg};
+use crate::state::{Person, OWNER, PERSON_STORE};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 pub fn instantiate(
-    _deps: DepsMut,
+    deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _msg: Empty,
+    msg: InstantiateMsg,
 ) -> StdResult<Response> {
+    OWNER.save(deps.storage, &msg.owner)?;
     Ok(Response::new())
 }
 
@@ -18,7 +18,7 @@ pub fn execute(
     _env: Env,
     _info: MessageInfo,
     msg: ExecuteMsg,
-) -> StdResult<Response> {
+) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::Register { id, address } => execute::register(deps, id, address),
     }
@@ -33,7 +33,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 mod execute {
     use super::*;
 
-    pub fn register(deps: DepsMut, id: String, address: Addr) -> StdResult<Response> {
+    pub fn register(deps: DepsMut, id: String, address: Addr) -> Result<Response, ContractError> {
         PERSON_STORE.insert(deps.storage, &id, &Person { address: address })?;
         Ok(Response::new())
     }
@@ -68,7 +68,9 @@ mod tests {
             deps.as_mut(),
             env.clone(),
             mock_info("sender", &[]),
-            Empty {},
+            InstantiateMsg {
+                owner: Addr::unchecked("owner"),
+            },
         )
         .unwrap();
 

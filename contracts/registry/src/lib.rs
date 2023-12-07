@@ -1,7 +1,6 @@
-use cosmwasm_std::{
-    entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
-};
-use msg::{ExecuteMsg, QueryMsg};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use error::ContractError;
+use msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 mod contract;
 mod error;
@@ -9,12 +8,22 @@ mod msg;
 mod state;
 
 #[entry_point]
-pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: Empty) -> StdResult<Response> {
+pub fn instantiate(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg,
+) -> StdResult<Response> {
     contract::instantiate(deps, env, info, msg)
 }
 
 #[entry_point]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
     contract::execute(deps, env, info, msg)
 }
 
