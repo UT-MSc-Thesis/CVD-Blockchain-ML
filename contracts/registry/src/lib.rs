@@ -1,4 +1,6 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+};
 use error::ContractError;
 use msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
@@ -30,4 +32,9 @@ pub fn execute(
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     contract::query(deps, env, msg)
+}
+
+#[entry_point]
+pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> Result<Response, ContractError> {
+    contract::reply(deps, env, msg)
 }

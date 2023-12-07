@@ -398,7 +398,7 @@ version = "0.1.0"
 dependencies = [
  "secret-cosmwasm-std",
  "secret-cosmwasm-storage",
- "secret-toolkit-storage",
+ "secret-toolkit",
  "serde",
  "thiserror",
 ]
@@ -501,6 +501,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "secret-toolkit"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "338c972c0a98de51ccbb859312eb7672bc64b9050b086f058748ba26a509edbb"
+dependencies = [
+ "secret-toolkit-serialization",
+ "secret-toolkit-storage",
+ "secret-toolkit-utils",
+]
+
+[[package]]
 name = "secret-toolkit-serialization"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -521,6 +532,18 @@ dependencies = [
  "secret-cosmwasm-std",
  "secret-cosmwasm-storage",
  "secret-toolkit-serialization",
+ "serde",
+]
+
+[[package]]
+name = "secret-toolkit-utils"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83f1cba2e70fd701e3dfc6072807c02eeeb9776bee49e346a9c7745d84ff40c8"
+dependencies = [
+ "schemars",
+ "secret-cosmwasm-std",
+ "secret-cosmwasm-storage",
  "serde",
 ]
 

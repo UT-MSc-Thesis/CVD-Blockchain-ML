@@ -1,7 +1,9 @@
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InfoResp, InstantiateMsg, QueryMsg};
 use crate::state::{Person, OWNER, PERSON_STORE};
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult, SubMsg,
+};
 
 pub fn instantiate(
     deps: DepsMut,
@@ -15,12 +17,12 @@ pub fn instantiate(
 
 pub fn execute(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Register { id, address } => execute::register(deps, info, id, address),
+        ExecuteMsg::Register { id, address } => execute::register(deps, env, info, id, address),
     }
 }
 
@@ -30,11 +32,21 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractError> {
+    match msg.id {
+        1 => reply::handle_instantiate_reply(deps, msg),
+        id => Err(ContractError::UnexpectedReplyId { id }),
+    }
+}
+
 mod execute {
     use super::*;
+    use crate::msg::OffspringInstantiateMsg;
+    use secret_toolkit::utils::InitCallback;
 
     pub fn register(
         deps: DepsMut,
+        env: Env,
         info: MessageInfo,
         id: String,
         address: Addr,
@@ -45,8 +57,23 @@ mod execute {
             });
         }
 
-        PERSON_STORE.insert(deps.storage, &id, &Person { address: address })?;
-        Ok(Response::new())
+        let initmsg = OffspringInstantiateMsg {
+            owner: address,
+            owner_id: id,
+        };
+
+        let init_submsg = SubMsg::reply_always(
+            initmsg.to_cosmos_msg(
+                None,
+                env.block.random.unwrap().to_string(),
+                1,
+                "code_hash".to_string(),
+                None,
+            )?,
+            1,
+        );
+
+        Ok(Response::new().add_submessage(init_submsg))
     }
 }
 
@@ -60,6 +87,35 @@ mod query {
         };
 
         Ok(resp)
+    }
+}
+
+mod reply {
+    use super::*;
+    use crate::msg::OffspringResp;
+    use cosmwasm_std::{from_binary, SubMsgResult};
+
+    pub fn handle_instantiate_reply(deps: DepsMut, msg: Reply) -> Result<Response, ContractError> {
+        match msg.result {
+            SubMsgResult::Ok(s) => match s.data {
+                Some(bin) => {
+                    let resp: OffspringResp = from_binary(&bin)?;
+
+                    PERSON_STORE.insert(
+                        deps.storage,
+                        &resp.owner_id,
+                        &Person {
+                            address: resp.owner_address,
+                            contract_address: resp.offspring_address,
+                        },
+                    )?;
+
+                    Ok(Response::new())
+                }
+                None => Err(ContractError::OffspringInstantiationError {}),
+            },
+            SubMsgResult::Err(e) => Err(ContractError::CustomError { val: e }),
+        }
     }
 }
 

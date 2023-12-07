@@ -7,4 +7,10 @@ pub enum ContractError {
     StdError(#[from] StdError),
     #[error("{sender} is not authorized to perform the requested action")]
     Unauthorized { sender: Addr },
+    #[error("Reply id {id} was not expected")]
+    UnexpectedReplyId { id: u64 },
+    #[error("Failed to instantiate a Record Manager contract")]
+    OffspringInstantiationError {},
+    #[error("Error: {val:?}")]
+    CustomError { val: String },
 }
