@@ -1,6 +1,6 @@
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InfoResp, InstantiateMsg, QueryMsg};
-use crate::state::{Person, OWNER, PERSON_STORE};
+use crate::state::{OffspringInfo, Person, OFFSPRING, OWNER, PERSON_STORE};
 use cosmwasm_std::{
     to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult, SubMsg,
 };
@@ -12,6 +12,13 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
     OWNER.save(deps.storage, &msg.owner)?;
+    OFFSPRING.save(
+        deps.storage,
+        &OffspringInfo {
+            code_id: msg.offspring_id,
+            code_hash: msg.offspring_hash,
+        },
+    )?;
     Ok(Response::new())
 }
 
@@ -62,12 +69,14 @@ mod execute {
             owner_id: id,
         };
 
+        let offspring = OFFSPRING.load(deps.storage).unwrap();
+
         let init_submsg = SubMsg::reply_always(
             initmsg.to_cosmos_msg(
                 None,
                 env.block.random.unwrap().to_string(),
-                1,
-                "0f912af5dd3b5ed5f63a8a252793f1371a9ea72e6390bdba118f2e252abd320b".to_string(),
+                offspring.code_id,
+                offspring.code_hash,
                 None,
             )?,
             1,
@@ -138,6 +147,8 @@ mod tests {
             mock_info("sender", &[]),
             InstantiateMsg {
                 owner: Addr::unchecked("owner"),
+                offspring_id: 1,
+                offspring_hash: "".to_string(),
             },
         )
         .unwrap();
@@ -158,6 +169,8 @@ mod tests {
             mock_info("sender", &[]),
             InstantiateMsg {
                 owner: Addr::unchecked("owner"),
+                offspring_id: 1,
+                offspring_hash: "".to_string(),
             },
         )
         .unwrap();

@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct InstantiateMsg {
     pub owner: Addr,
+    pub offspring_id: u64,
+    pub offspring_hash: String,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
