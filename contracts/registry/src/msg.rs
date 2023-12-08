@@ -11,12 +11,16 @@ pub struct InstantiateMsg {
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum ExecuteMsg {
-    Register { id: String, address: Addr },
+    Register {
+        id: String,
+        address: Addr,
+        key: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum QueryMsg {
-    Info { id: String },
+    Info { id: String, key: String },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -25,19 +29,21 @@ pub struct InfoResp {
     pub contract_address: Addr,
 }
 
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub struct OffspringInstantiateMsg {
+    pub owner: Addr,
+    pub owner_id: String,
+    pub key: String,
+}
+
+impl InitCallback for OffspringInstantiateMsg {
+    const BLOCK_SIZE: usize = 256;
+}
+
 #[derive(Deserialize)]
 pub struct OffspringResp {
     pub offspring_address: Addr,
     pub owner_id: String,
     pub owner_address: Addr,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct OffspringInstantiateMsg {
-    pub owner: Addr,
-    pub owner_id: String,
-}
-
-impl InitCallback for OffspringInstantiateMsg {
-    const BLOCK_SIZE: usize = 256;
+    pub key: String,
 }

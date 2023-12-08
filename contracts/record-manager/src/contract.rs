@@ -16,6 +16,7 @@ pub fn instantiate(
         offspring_address: env.contract.address,
         owner_address: msg.owner,
         owner_id: msg.owner_id,
+        key: msg.key,
     };
 
     Ok(Response::new().set_data(to_binary(&callback_info)?))
@@ -56,6 +57,7 @@ mod tests {
             InstantiateMsg {
                 owner: Addr::unchecked("owner"),
                 owner_id: "John Doe".to_string(),
+                key: "".to_string(),
             },
         )
         .unwrap();

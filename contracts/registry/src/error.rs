@@ -11,6 +11,10 @@ pub enum ContractError {
     UnexpectedReplyId { id: u64 },
     #[error("Failed to instantiate a Record Manager contract")]
     OffspringInstantiationError {},
+    #[error("No user with id {id} found")]
+    NonexistentUser { id: String },
+    #[error("Key {key} is not valid for this query")]
+    InvalidKey { key: String },
     #[error("Error: {val:?}")]
     CustomError { val: String },
 }

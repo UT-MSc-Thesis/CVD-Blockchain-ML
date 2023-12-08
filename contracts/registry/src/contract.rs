@@ -4,6 +4,7 @@ use crate::state::{OffspringInfo, Person, OFFSPRING, OWNER, PERSON_STORE};
 use cosmwasm_std::{
     to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult, SubMsg,
 };
+use secret_toolkit::viewing_key::{ViewingKey, ViewingKeyStore};
 
 pub fn instantiate(
     deps: DepsMut,
@@ -29,13 +30,17 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Register { id, address } => execute::register(deps, env, info, id, address),
+        ExecuteMsg::Register { id, address, key } => {
+            execute::register(deps, env, info, id, address, key)
+        }
     }
 }
 
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
-        QueryMsg::Info { id } => to_binary(&query::get_info(deps, id).unwrap()),
+        QueryMsg::Info { id, key } => {
+            to_binary(&query::get_info(deps, id, key).unwrap()).map_err(Into::into)
+        }
     }
 }
 
@@ -57,6 +62,7 @@ mod execute {
         info: MessageInfo,
         id: String,
         address: Addr,
+        key: String,
     ) -> Result<Response, ContractError> {
         if OWNER.load(deps.storage).unwrap() != info.sender {
             return Err(ContractError::Unauthorized {
@@ -67,6 +73,7 @@ mod execute {
         let initmsg = OffspringInstantiateMsg {
             owner: address,
             owner_id: id,
+            key: key,
         };
 
         let offspring = OFFSPRING.load(deps.storage).unwrap();
@@ -89,14 +96,24 @@ mod execute {
 mod query {
     use super::*;
 
-    pub fn get_info(deps: Deps, id: String) -> StdResult<InfoResp> {
-        let person = PERSON_STORE.get(deps.storage, &id).unwrap();
-        let resp = InfoResp {
-            address: person.address,
-            contract_address: person.contract_address,
-        };
+    pub fn get_info(deps: Deps, id: String, key: String) -> Result<InfoResp, ContractError> {
+        if !PERSON_STORE.contains(deps.storage, &id) {
+            return Err(ContractError::NonexistentUser { id: id });
+        }
 
-        Ok(resp)
+        let auth = ViewingKey::check(deps.storage, &id, &key);
+
+        match auth.is_ok() {
+            true => {
+                let person = PERSON_STORE.get(deps.storage, &id).unwrap();
+                let resp = InfoResp {
+                    address: person.address,
+                    contract_address: person.contract_address,
+                };
+                Ok(resp)
+            }
+            false => Err(ContractError::InvalidKey { key: key }),
+        }
     }
 }
 
@@ -119,6 +136,8 @@ mod reply {
                             contract_address: resp.offspring_address,
                         },
                     )?;
+
+                    ViewingKey::set(deps.storage, &resp.owner_id, &resp.key);
 
                     Ok(Response::new())
                 }
@@ -182,6 +201,7 @@ mod tests {
             ExecuteMsg::Register {
                 id: sample_id.to_owned(),
                 address: sample_address.clone(),
+                key: "".to_string(),
             },
         )
         .unwrap_err();
@@ -200,6 +220,7 @@ mod tests {
             ExecuteMsg::Register {
                 id: sample_id.to_owned(),
                 address: sample_address.clone(),
+                key: "".to_string(),
             },
         )
         .unwrap();
@@ -209,6 +230,7 @@ mod tests {
             env,
             QueryMsg::Info {
                 id: sample_id.to_owned(),
+                key: "".to_string(),
             },
         )
         .unwrap();

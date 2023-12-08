@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct InstantiateMsg {
     pub owner: Addr,
     pub owner_id: String,
+    pub key: String,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -18,4 +19,5 @@ pub struct CallbackInfo {
     pub offspring_address: Addr,
     pub owner_id: String,
     pub owner_address: Addr,
+    pub key: String,
 }
