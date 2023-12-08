@@ -1,15 +1,16 @@
 use crate::error::ContractError;
 use crate::msg::{CallbackInfo, ExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::OWNER;
+use crate::state::{OWNER, REGISTRY};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 pub fn instantiate(
     deps: DepsMut,
     env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
     OWNER.save(deps.storage, &msg.owner)?;
+    REGISTRY.save(deps.storage, &info.sender)?;
 
     let callback_info = CallbackInfo {
         offspring_address: env.contract.address,
@@ -29,8 +30,8 @@ pub fn execute(
     Ok(Response::new())
 }
 
-pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
-    Ok(to_binary(&Addr::unchecked("someaddress")).unwrap())
+pub fn query(deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
+    Ok(to_binary(&REGISTRY.load(deps.storage).unwrap()).unwrap())
 }
 
 mod execute {}

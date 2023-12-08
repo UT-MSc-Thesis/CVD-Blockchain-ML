@@ -13,4 +13,5 @@ pub struct Record {
 }
 
 pub static OWNER: Item<Addr> = Item::new(b"owner");
+pub static REGISTRY: Item<Addr> = Item::new(b"registry");
 // pub static RECORD_STORE: Keymap<String, Record> = Keymap::new(b"record");
