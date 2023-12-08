@@ -1,7 +1,8 @@
 use crate::error::ContractError;
 use crate::msg::{CallbackInfo, ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::state::{Record, RECORD_STORE};
 use crate::state::{OWNER, REGISTRY};
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 pub fn instantiate(
     deps: DepsMut,
@@ -23,25 +24,68 @@ pub fn instantiate(
 }
 
 pub fn execute(
-    _deps: DepsMut,
-    _env: Env,
+    deps: DepsMut,
+    env: Env,
     _info: MessageInfo,
-    _msg: ExecuteMsg,
+    msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    Ok(Response::new())
+    match msg {
+        ExecuteMsg::AddRecord {
+            id,
+            title,
+            description,
+            data,
+        } => execute::add_record(deps, env, id, title, description, data),
+    }
 }
 
-pub fn query(deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
-    Ok(to_binary(&REGISTRY.load(deps.storage).unwrap()).unwrap())
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    match msg {
+        QueryMsg::Records { page } => query::get_records(deps, page),
+    }
 }
 
-mod execute {}
+mod execute {
+    use super::*;
 
-mod query {}
+    pub fn add_record(
+        deps: DepsMut,
+        env: Env,
+        id: String,
+        title: String,
+        description: String,
+        data: String,
+    ) -> Result<Response, ContractError> {
+        RECORD_STORE.insert(
+            deps.storage,
+            &id,
+            &Record {
+                title: title,
+                timestamp: env.block.time,
+                description: description,
+                data: data,
+            },
+        )?;
+
+        Ok(Response::new())
+    }
+}
+
+mod query {
+    use super::*;
+
+    pub fn get_records(deps: Deps, page: u32) -> StdResult<Binary> {
+        let records = RECORD_STORE.paging(deps.storage, page, 5).unwrap();
+        Ok(to_binary(&records).unwrap())
+    }
+}
 
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Addr,
+    };
 
     use super::*;
 

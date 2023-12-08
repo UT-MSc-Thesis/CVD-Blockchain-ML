@@ -9,10 +9,20 @@ pub struct InstantiateMsg {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub enum ExecuteMsg {}
+#[serde(rename_all = "snake_case")]
+pub enum ExecuteMsg {
+    AddRecord {
+        id: String,
+        title: String,
+        description: String,
+        data: String,
+    },
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub enum QueryMsg {}
+pub enum QueryMsg {
+    Records { page: u32 },
+}
 
 #[derive(Serialize)]
 pub struct CallbackInfo {
