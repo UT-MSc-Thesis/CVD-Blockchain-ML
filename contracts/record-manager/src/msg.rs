@@ -2,6 +2,7 @@ use cosmwasm_std::Addr;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct InstantiateMsg {
     pub owner: Addr,
     pub owner_id: String,
@@ -20,11 +21,13 @@ pub enum ExecuteMsg {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Records { page: u32 },
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct CallbackInfo {
     pub offspring_address: Addr,
     pub owner_id: String,

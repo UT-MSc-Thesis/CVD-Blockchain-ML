@@ -3,6 +3,7 @@ use secret_toolkit::utils::InitCallback;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct InstantiateMsg {
     pub owner: Addr,
     pub offspring_id: u64,
@@ -25,18 +26,21 @@ pub enum ExecuteMsg {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Info { id: String, key: String },
     Records { id: String, page: u32 },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct InfoResp {
     pub address: Addr,
     pub contract_address: Addr,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct OffspringInstantiateMsg {
     pub owner: Addr,
     pub owner_id: String,
@@ -47,7 +51,8 @@ impl InitCallback for OffspringInstantiateMsg {
     const BLOCK_SIZE: usize = 256;
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct OffspringResp {
     pub offspring_address: Addr,
     pub owner_id: String,
@@ -62,6 +67,7 @@ pub enum OffspringExecuteMsg {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct AddRecordMsg {
     pub id: String,
     pub title: String,
@@ -95,11 +101,13 @@ impl AddRecordMsg {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub enum OffspringQueryMsg {
     Records { page: u32 },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct Record {
     pub title: String,
     pub timestamp: Option<Timestamp>,

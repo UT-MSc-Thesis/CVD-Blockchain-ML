@@ -2,13 +2,15 @@ use cosmwasm_std::Addr;
 use secret_toolkit::storage::{Item, Keymap};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct Person {
     pub address: Addr,
     pub contract_address: Addr,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct OffspringInfo {
     pub code_id: u64,
     pub code_hash: String,
