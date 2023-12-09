@@ -26,9 +26,15 @@ pub fn instantiate(
 pub fn execute(
     deps: DepsMut,
     env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
+    if REGISTRY.load(deps.storage).unwrap() != info.sender {
+        return Err(ContractError::Unauthorized {
+            sender: info.sender,
+        });
+    }
+
     match msg {
         ExecuteMsg::AddRecord {
             id,
