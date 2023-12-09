@@ -89,6 +89,7 @@ mod query {
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{
+        from_binary,
         testing::{mock_dependencies, mock_env, mock_info},
         Addr,
     };
@@ -102,7 +103,7 @@ mod tests {
 
         let resp = instantiate(
             deps.as_mut(),
-            env.clone(),
+            env,
             mock_info("sender", &[]),
             InstantiateMsg {
                 owner: Addr::unchecked("owner"),
@@ -113,5 +114,90 @@ mod tests {
         .unwrap();
 
         assert_eq!(0, resp.messages.len());
+    }
+
+    #[test]
+    fn run_add_record_unauthorized() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+
+        instantiate(
+            deps.as_mut(),
+            env.clone(),
+            mock_info("registry", &[]),
+            InstantiateMsg {
+                owner: Addr::unchecked("owner"),
+                owner_id: "Alice".to_string(),
+                key: "password".to_string(),
+            },
+        )
+        .unwrap();
+
+        let err = execute(
+            deps.as_mut(),
+            env,
+            mock_info("sender", &[]),
+            ExecuteMsg::AddRecord {
+                id: "id".to_string(),
+                title: "title".to_string(),
+                description: "decription".to_string(),
+                data: "data".to_string(),
+            },
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            err,
+            ContractError::Unauthorized {
+                sender: Addr::unchecked("sender")
+            }
+        );
+    }
+
+    #[test]
+    fn run_add_record() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+
+        instantiate(
+            deps.as_mut(),
+            env.clone(),
+            mock_info("registry", &[]),
+            InstantiateMsg {
+                owner: Addr::unchecked("owner"),
+                owner_id: "Alice".to_string(),
+                key: "password".to_string(),
+            },
+        )
+        .unwrap();
+
+        execute(
+            deps.as_mut(),
+            env.clone(),
+            mock_info("registry", &[]),
+            ExecuteMsg::AddRecord {
+                id: "id".to_string(),
+                title: "title".to_string(),
+                description: "description".to_string(),
+                data: "data".to_string(),
+            },
+        )
+        .unwrap();
+
+        let resp = query(deps.as_ref(), env.clone(), QueryMsg::Records { page: 0 }).unwrap();
+        let resp: Vec<(String, Record)> = from_binary(&resp).unwrap();
+
+        assert_eq!(
+            vec![(
+                "id".to_string(),
+                Record {
+                    title: "title".to_string(),
+                    timestamp: env.block.time,
+                    description: "description".to_string(),
+                    data: "data".to_string()
+                }
+            )],
+            resp
+        );
     }
 }
