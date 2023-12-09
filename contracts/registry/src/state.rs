@@ -14,13 +14,6 @@ pub struct OffspringInfo {
     pub code_hash: String,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct Record {
-    pub title: String,
-    pub description: String,
-    pub data: String,
-}
-
 pub static OWNER: Item<Addr> = Item::new(b"owner");
 pub static OFFSPRING: Item<OffspringInfo> = Item::new(b"offspring");
 pub static PERSON_STORE: Keymap<String, Person> = Keymap::new(b"person");

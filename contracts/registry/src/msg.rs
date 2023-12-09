@@ -1,8 +1,6 @@
-use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, StdResult, WasmMsg};
+use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, StdResult, Timestamp, WasmMsg};
 use secret_toolkit::utils::InitCallback;
 use serde::{Deserialize, Serialize};
-
-use crate::state::Record;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct InstantiateMsg {
@@ -29,6 +27,7 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum QueryMsg {
     Info { id: String, key: String },
+    Records { id: String, page: u32 },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -93,4 +92,17 @@ impl AddRecordMsg {
         };
         Ok(execute.into())
     }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub enum OffspringQueryMsg {
+    Records { page: u32 },
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub struct Record {
+    pub title: String,
+    pub timestamp: Option<Timestamp>,
+    pub description: String,
+    pub data: String,
 }

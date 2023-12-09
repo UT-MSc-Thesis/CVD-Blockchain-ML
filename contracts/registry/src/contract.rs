@@ -46,6 +46,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractErr
         QueryMsg::Info { id, key } => {
             to_binary(&query::get_info(deps, id, key).unwrap()).map_err(Into::into)
         }
+        QueryMsg::Records { id, page } => query::get_records(deps, id, page),
     }
 }
 
@@ -58,10 +59,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractE
 
 mod execute {
     use super::*;
-    use crate::{
-        msg::{AddRecordMsg, OffspringInstantiateMsg},
-        state::Record,
-    };
+    use crate::msg::{AddRecordMsg, OffspringInstantiateMsg, Record};
     use secret_toolkit::utils::InitCallback;
 
     pub fn register(
@@ -129,6 +127,9 @@ mod execute {
 }
 
 mod query {
+    use crate::msg::{OffspringQueryMsg, Record};
+    use cosmwasm_std::{QueryRequest, WasmQuery};
+
     use super::*;
 
     pub fn get_info(deps: Deps, id: String, key: String) -> Result<InfoResp, ContractError> {
@@ -149,6 +150,26 @@ mod query {
             }
             false => Err(ContractError::InvalidKey { key: key }),
         }
+    }
+
+    pub fn get_records(deps: Deps, id: String, page: u32) -> Result<Binary, ContractError> {
+        if !PERSON_STORE.contains(deps.storage, &id) {
+            return Err(ContractError::NonexistentUser { id: id });
+        }
+
+        let offspring = OFFSPRING.load(deps.storage).unwrap();
+        let person = PERSON_STORE.get(deps.storage, &id).unwrap();
+
+        let query_msg: OffspringQueryMsg = OffspringQueryMsg::Records { page: page };
+
+        let query_response: Vec<(String, Record)> =
+            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: person.contract_address.to_string(),
+                code_hash: offspring.code_hash,
+                msg: to_binary(&query_msg)?,
+            }))?;
+
+        Ok(to_binary(&query_response).unwrap())
     }
 }
 
