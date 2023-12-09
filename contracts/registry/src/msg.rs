@@ -1,6 +1,8 @@
-use cosmwasm_std::Addr;
+use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, StdResult, WasmMsg};
 use secret_toolkit::utils::InitCallback;
 use serde::{Deserialize, Serialize};
+
+use crate::state::Record;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct InstantiateMsg {
@@ -10,11 +12,17 @@ pub struct InstantiateMsg {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Register {
         id: String,
         address: Addr,
         key: String,
+    },
+    AddRecord {
+        patient_id: String,
+        record_id: String,
+        record: Record,
     },
 }
 
@@ -46,4 +54,43 @@ pub struct OffspringResp {
     pub owner_id: String,
     pub owner_address: Addr,
     pub key: String,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum OffspringExecuteMsg {
+    AddRecord(AddRecordMsg),
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+pub struct AddRecordMsg {
+    pub id: String,
+    pub title: String,
+    pub description: String,
+    pub data: String,
+}
+
+impl AddRecordMsg {
+    pub fn into_binary(self) -> StdResult<Binary> {
+        let msg = OffspringExecuteMsg::AddRecord(self);
+        to_binary(&msg)
+    }
+
+    pub fn into_cosmos_msg<T: Into<String>, C>(
+        self,
+        contract_addr: T,
+        code_hash: String,
+    ) -> StdResult<CosmosMsg<C>>
+    where
+        C: Clone + std::fmt::Debug + PartialEq,
+    {
+        let msg = self.into_binary()?;
+        let execute = WasmMsg::Execute {
+            contract_addr: contract_addr.into(),
+            code_hash: code_hash,
+            msg,
+            funds: vec![],
+        };
+        Ok(execute.into())
+    }
 }

@@ -33,6 +33,11 @@ pub fn execute(
         ExecuteMsg::Register { id, address, key } => {
             execute::register(deps, env, info, id, address, key)
         }
+        ExecuteMsg::AddRecord {
+            patient_id,
+            record_id,
+            record,
+        } => execute::add_record(deps, patient_id, record_id, record),
     }
 }
 
@@ -53,7 +58,10 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractE
 
 mod execute {
     use super::*;
-    use crate::msg::OffspringInstantiateMsg;
+    use crate::{
+        msg::{AddRecordMsg, OffspringInstantiateMsg},
+        state::Record,
+    };
     use secret_toolkit::utils::InitCallback;
 
     pub fn register(
@@ -90,6 +98,33 @@ mod execute {
         );
 
         Ok(Response::new().add_submessage(init_submsg))
+    }
+
+    pub fn add_record(
+        deps: DepsMut,
+        patient_id: String,
+        record_id: String,
+        record: Record,
+    ) -> Result<Response, ContractError> {
+        if !PERSON_STORE.contains(deps.storage, &patient_id) {
+            return Err(ContractError::NonexistentUser { id: patient_id });
+        }
+
+        let offspring = OFFSPRING.load(deps.storage).unwrap();
+        let person = PERSON_STORE.get(deps.storage, &patient_id).unwrap();
+
+        let execute_msg = AddRecordMsg {
+            id: record_id,
+            title: record.title,
+            description: record.description,
+            data: record.data,
+        };
+
+        let processed_msg = execute_msg
+            .clone()
+            .into_cosmos_msg(person.contract_address.to_string(), offspring.code_hash)?;
+
+        Ok(Response::new().add_message(processed_msg))
     }
 }
 
