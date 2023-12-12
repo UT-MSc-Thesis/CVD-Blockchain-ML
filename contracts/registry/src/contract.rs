@@ -1,5 +1,5 @@
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InfoResp, InstantiateMsg, QueryMsg};
+use crate::msg::{ExecuteMsg, InfoResp, InstantiateMsg, QueryMsg, QueryWithPermit};
 use crate::state::{OffspringInfo, Person, OFFSPRING, OWNER, PERSON_STORE};
 use cosmwasm_std::{
     to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult, SubMsg,
@@ -47,6 +47,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractErr
             to_binary(&query::get_info(deps, id, key).unwrap()).map_err(Into::into)
         }
         QueryMsg::Records { id, page } => query::get_records(deps, id, page),
+        QueryMsg::WithPermit { id, permit, query } => match query {
+            QueryWithPermit::View => query::view_records(deps, id, permit),
+            QueryWithPermit::Add => Ok(to_binary("").unwrap()),
+        },
     }
 }
 
@@ -127,8 +131,9 @@ mod execute {
 }
 
 mod query {
-    use crate::msg::{OffspringQueryMsg, Record};
+    use crate::msg::{OffspringQueryMsg, Record, RecordPermissions};
     use cosmwasm_std::{QueryRequest, WasmQuery};
+    use secret_toolkit::permit::Permit;
 
     use super::*;
 
@@ -161,6 +166,30 @@ mod query {
         let person = PERSON_STORE.get(deps.storage, &id).unwrap();
 
         let query_msg: OffspringQueryMsg = OffspringQueryMsg::Records { page: page };
+
+        let query_response: Vec<(String, Record)> =
+            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: person.contract_address.to_string(),
+                code_hash: offspring.code_hash,
+                msg: to_binary(&query_msg)?,
+            }))?;
+
+        Ok(to_binary(&query_response).unwrap())
+    }
+
+    pub fn view_records(
+        deps: Deps,
+        id: String,
+        permit: Permit<RecordPermissions>,
+    ) -> Result<Binary, ContractError> {
+        if !PERSON_STORE.contains(deps.storage, &id) {
+            return Err(ContractError::NonexistentUser { id: id });
+        }
+
+        let offspring = OFFSPRING.load(deps.storage).unwrap();
+        let person = PERSON_STORE.get(deps.storage, &id).unwrap();
+
+        let query_msg: OffspringQueryMsg = OffspringQueryMsg::View { permit: permit };
 
         let query_response: Vec<(String, Record)> =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {

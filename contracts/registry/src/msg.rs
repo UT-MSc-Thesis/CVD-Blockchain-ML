@@ -1,5 +1,6 @@
 use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, StdResult, Timestamp, WasmMsg};
-use secret_toolkit::utils::InitCallback;
+use schemars::JsonSchema;
+use secret_toolkit::{permit::Permit, utils::InitCallback};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -28,8 +29,19 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Info { id: String, key: String },
-    Records { id: String, page: u32 },
+    Info {
+        id: String,
+        key: String,
+    },
+    Records {
+        id: String,
+        page: u32,
+    },
+    WithPermit {
+        id: String,
+        permit: Permit<RecordPermissions>,
+        query: QueryWithPermit,
+    },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -104,6 +116,7 @@ impl AddRecordMsg {
 #[serde(rename_all = "snake_case")]
 pub enum OffspringQueryMsg {
     Records { page: u32 },
+    View { permit: Permit<RecordPermissions> },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -113,4 +126,18 @@ pub struct Record {
     pub timestamp: Option<Timestamp>,
     pub description: String,
     pub data: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum RecordPermissions {
+    View,
+    Add,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum QueryWithPermit {
+    View,
+    Add,
 }

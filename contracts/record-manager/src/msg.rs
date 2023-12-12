@@ -1,4 +1,6 @@
 use cosmwasm_std::Addr;
+use schemars::JsonSchema;
+use secret_toolkit::permit::Permit;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -24,6 +26,7 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Records { page: u32 },
+    View { permit: Permit<RecordPermissions> },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -33,4 +36,11 @@ pub struct CallbackInfo {
     pub owner_id: String,
     pub owner_address: Addr,
     pub key: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum RecordPermissions {
+    View,
+    Add,
 }

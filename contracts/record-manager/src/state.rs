@@ -1,5 +1,5 @@
 use cosmwasm_std::{Addr, Timestamp};
-use secret_toolkit_storage::{Item, Keymap};
+use secret_toolkit::storage::{Item, Keymap};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]

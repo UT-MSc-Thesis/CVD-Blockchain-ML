@@ -1,8 +1,10 @@
 use crate::error::ContractError;
-use crate::msg::{CallbackInfo, ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::msg::{CallbackInfo, ExecuteMsg, InstantiateMsg, QueryMsg, RecordPermissions};
 use crate::state::{Record, RECORD_STORE};
 use crate::state::{OWNER, REGISTRY};
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+};
 
 pub fn instantiate(
     deps: DepsMut,
@@ -45,9 +47,25 @@ pub fn execute(
     }
 }
 
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Records { page } => query::get_records(deps, page),
+        QueryMsg::View { permit } => {
+            secret_toolkit::permit::validate(
+                deps,
+                "revoked_permits",
+                &permit,
+                env.contract.address.to_string(),
+                None,
+            )?;
+
+            if !permit.check_permission(&RecordPermissions::View) {
+                // return Err(ContractError::InvalidPermit);
+                return Err(StdError::generic_err("Invalid Permit"));
+            }
+
+            query::get_records(deps, 0)
+        }
     }
 }
 

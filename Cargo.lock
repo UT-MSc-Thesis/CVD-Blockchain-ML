@@ -38,6 +38,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
+name = "bech32"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d86b93f97252c47b41663388e6d155714a9d0c398b99f1005cbc5f978b29f445"
+
+[[package]]
 name = "bincode2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -416,9 +422,10 @@ dependencies = [
 name = "record-manager"
 version = "0.1.0"
 dependencies = [
+ "schemars",
  "secret-cosmwasm-std",
  "secret-cosmwasm-storage",
- "secret-toolkit-storage",
+ "secret-toolkit",
  "serde",
  "thiserror",
 ]
@@ -427,11 +434,23 @@ dependencies = [
 name = "registry"
 version = "0.1.0"
 dependencies = [
+ "schemars",
  "secret-cosmwasm-std",
  "secret-cosmwasm-storage",
  "secret-toolkit",
  "serde",
  "thiserror",
+]
+
+[[package]]
+name = "remain"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bce3a7139d2ee67d07538ee5dba997364fbc243e7e7143e96eb830c74bfaa082"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.39",
 ]
 
 [[package]]
@@ -443,6 +462,15 @@ dependencies = [
  "crypto-bigint",
  "hmac",
  "zeroize",
+]
+
+[[package]]
+name = "ripemd"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd124222d17ad93a644ed9d011a40f4fb64aa54275c08cc216524a9ea82fb09f"
+dependencies = [
+ "digest 0.10.7",
 ]
 
 [[package]]
@@ -555,6 +583,8 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "338c972c0a98de51ccbb859312eb7672bc64b9050b086f058748ba26a509edbb"
 dependencies = [
+ "secret-toolkit-crypto",
+ "secret-toolkit-permit",
  "secret-toolkit-serialization",
  "secret-toolkit-storage",
  "secret-toolkit-utils",
@@ -572,6 +602,21 @@ dependencies = [
  "secp256k1",
  "secret-cosmwasm-std",
  "sha2 0.10.8",
+]
+
+[[package]]
+name = "secret-toolkit-permit"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4330571400b5959450fa37040609e6804a147d83f606783506bc2275f1527712"
+dependencies = [
+ "bech32",
+ "remain",
+ "ripemd",
+ "schemars",
+ "secret-cosmwasm-std",
+ "secret-toolkit-crypto",
+ "serde",
 ]
 
 [[package]]
