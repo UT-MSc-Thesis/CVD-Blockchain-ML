@@ -125,6 +125,7 @@ mod execute {
 
         let mut permit = permit.clone();
         permit.params.allowed_tokens = vec![person.contract_address.to_string()];
+        permit.signature.pub_key.value = to_binary(&person.pubkey)?;
 
         let execute_msg = AddRecordMsg {
             id: record_id,
