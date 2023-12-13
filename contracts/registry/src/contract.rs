@@ -37,7 +37,8 @@ pub fn execute(
             patient_id,
             record_id,
             record,
-        } => execute::add_record(deps, patient_id, record_id, record),
+            permit,
+        } => execute::add_record(deps, patient_id, record_id, record, permit),
     }
 }
 
@@ -64,8 +65,8 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractE
 
 mod execute {
     use super::*;
-    use crate::msg::{AddRecordMsg, OffspringInstantiateMsg, Record};
-    use secret_toolkit::utils::InitCallback;
+    use crate::msg::{AddRecordMsg, OffspringInstantiateMsg, Record, RecordPermissions};
+    use secret_toolkit::{permit::Permit, utils::InitCallback};
 
     pub fn register(
         deps: DepsMut,
@@ -108,6 +109,7 @@ mod execute {
         patient_id: String,
         record_id: String,
         record: Record,
+        permit: Permit<RecordPermissions>,
     ) -> Result<Response, ContractError> {
         if !PERSON_STORE.contains(deps.storage, &patient_id) {
             return Err(ContractError::NonexistentUser { id: patient_id });
@@ -116,11 +118,15 @@ mod execute {
         let offspring = OFFSPRING.load(deps.storage).unwrap();
         let person = PERSON_STORE.get(deps.storage, &patient_id).unwrap();
 
+        let mut permit = permit.clone();
+        permit.params.allowed_tokens = vec![person.contract_address.to_string()];
+
         let execute_msg = AddRecordMsg {
             id: record_id,
             title: record.title,
             description: record.description,
             data: record.data,
+            permit: permit,
         };
 
         let processed_msg = execute_msg

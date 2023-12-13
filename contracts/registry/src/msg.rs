@@ -23,6 +23,7 @@ pub enum ExecuteMsg {
         patient_id: String,
         record_id: String,
         record: Record,
+        permit: Permit<RecordPermissions>,
     },
 }
 
@@ -81,6 +82,7 @@ pub struct AddRecordMsg {
     pub title: String,
     pub description: String,
     pub data: String,
+    pub permit: Permit<RecordPermissions>,
 }
 
 impl AddRecordMsg {

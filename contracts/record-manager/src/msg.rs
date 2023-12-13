@@ -19,6 +19,7 @@ pub enum ExecuteMsg {
         title: String,
         description: String,
         data: String,
+        permit: Permit<RecordPermissions>,
     },
 }
 

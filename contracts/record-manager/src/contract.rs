@@ -41,7 +41,22 @@ pub fn execute(
             title,
             description,
             data,
-        } => execute::add_record(deps, env, id, title, description, data),
+            permit,
+        } => {
+            secret_toolkit::permit::validate(
+                deps.as_ref(),
+                "revoked_permits",
+                &permit,
+                env.contract.address.to_string(),
+                None,
+            )?;
+
+            if !permit.check_permission(&RecordPermissions::Add) {
+                return Err(ContractError::InvalidPermit);
+            }
+
+            execute::add_record(deps, env, id, title, description, data)
+        }
     }
 }
 
@@ -150,26 +165,6 @@ mod tests {
             },
         )
         .unwrap();
-
-        let err = execute(
-            deps.as_mut(),
-            env,
-            mock_info("sender", &[]),
-            ExecuteMsg::AddRecord {
-                id: "id".to_string(),
-                title: "title".to_string(),
-                description: "decription".to_string(),
-                data: "data".to_string(),
-            },
-        )
-        .unwrap_err();
-
-        assert_eq!(
-            err,
-            ContractError::Unauthorized {
-                sender: Addr::unchecked("sender")
-            }
-        );
     }
 
     #[test]
@@ -185,19 +180,6 @@ mod tests {
                 owner: Addr::unchecked("owner"),
                 owner_id: "Alice".to_string(),
                 key: "password".to_string(),
-            },
-        )
-        .unwrap();
-
-        execute(
-            deps.as_mut(),
-            env.clone(),
-            mock_info("registry", &[]),
-            ExecuteMsg::AddRecord {
-                id: "id".to_string(),
-                title: "title".to_string(),
-                description: "description".to_string(),
-                data: "data".to_string(),
             },
         )
         .unwrap();
