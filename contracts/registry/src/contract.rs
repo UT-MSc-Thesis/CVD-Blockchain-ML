@@ -46,9 +46,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractErr
         QueryMsg::Info { id, key } => {
             to_binary(&query::get_info(deps, id, key).unwrap()).map_err(Into::into)
         }
-        QueryMsg::Records { id, page } => query::get_records(deps, id, page),
         QueryMsg::WithPermit { id, permit, query } => match query {
-            QueryWithPermit::View => query::view_records(deps, id, permit),
+            QueryWithPermit::ViewById { record_id } => {
+                query::get_record_by_id(deps, id, permit, record_id)
+            }
             QueryWithPermit::Add => Ok(to_binary("").unwrap()),
         },
     }
@@ -157,30 +158,11 @@ mod query {
         }
     }
 
-    pub fn get_records(deps: Deps, id: String, page: u32) -> Result<Binary, ContractError> {
-        if !PERSON_STORE.contains(deps.storage, &id) {
-            return Err(ContractError::NonexistentUser { id: id });
-        }
-
-        let offspring = OFFSPRING.load(deps.storage).unwrap();
-        let person = PERSON_STORE.get(deps.storage, &id).unwrap();
-
-        let query_msg: OffspringQueryMsg = OffspringQueryMsg::Records { page: page };
-
-        let query_response: Vec<(String, Record)> =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: person.contract_address.to_string(),
-                code_hash: offspring.code_hash,
-                msg: to_binary(&query_msg)?,
-            }))?;
-
-        Ok(to_binary(&query_response).unwrap())
-    }
-
-    pub fn view_records(
+    pub fn get_record_by_id(
         deps: Deps,
         id: String,
         permit: Permit<RecordPermissions>,
+        record_id: String,
     ) -> Result<Binary, ContractError> {
         if !PERSON_STORE.contains(deps.storage, &id) {
             return Err(ContractError::NonexistentUser { id: id });
@@ -189,14 +171,16 @@ mod query {
         let offspring = OFFSPRING.load(deps.storage).unwrap();
         let person = PERSON_STORE.get(deps.storage, &id).unwrap();
 
-        let query_msg: OffspringQueryMsg = OffspringQueryMsg::View { permit: permit };
+        let query_msg: OffspringQueryMsg = OffspringQueryMsg::ViewById {
+            permit: permit,
+            record_id: record_id,
+        };
 
-        let query_response: Vec<(String, Record)> =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: person.contract_address.to_string(),
-                code_hash: offspring.code_hash,
-                msg: to_binary(&query_msg)?,
-            }))?;
+        let query_response: Record = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: person.contract_address.to_string(),
+            code_hash: offspring.code_hash,
+            msg: to_binary(&query_msg)?,
+        }))?;
 
         Ok(to_binary(&query_response).unwrap())
     }

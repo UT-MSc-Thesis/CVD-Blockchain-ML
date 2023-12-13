@@ -33,10 +33,6 @@ pub enum QueryMsg {
         id: String,
         key: String,
     },
-    Records {
-        id: String,
-        page: u32,
-    },
     WithPermit {
         id: String,
         permit: Permit<RecordPermissions>,
@@ -115,8 +111,10 @@ impl AddRecordMsg {
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum OffspringQueryMsg {
-    Records { page: u32 },
-    View { permit: Permit<RecordPermissions> },
+    ViewById {
+        permit: Permit<RecordPermissions>,
+        record_id: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -131,13 +129,13 @@ pub struct Record {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum RecordPermissions {
-    View,
+    ViewById { record_id: String },
     Add,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryWithPermit {
-    View,
+    ViewById { record_id: String },
     Add,
 }

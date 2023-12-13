@@ -9,4 +9,6 @@ pub enum ContractError {
     Unauthorized { sender: Addr },
     #[error("Provided permit is not valid")]
     InvalidPermit,
+    #[error("No record with id {id} found")]
+    NonexistentRecord { id: String },
 }

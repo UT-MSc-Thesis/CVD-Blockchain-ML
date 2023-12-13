@@ -2,9 +2,7 @@ use crate::error::ContractError;
 use crate::msg::{CallbackInfo, ExecuteMsg, InstantiateMsg, QueryMsg, RecordPermissions};
 use crate::state::{Record, RECORD_STORE};
 use crate::state::{OWNER, REGISTRY};
-use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
-};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 pub fn instantiate(
     deps: DepsMut,
@@ -47,10 +45,9 @@ pub fn execute(
     }
 }
 
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
-        QueryMsg::Records { page } => query::get_records(deps, page),
-        QueryMsg::View { permit } => {
+        QueryMsg::ViewById { permit, record_id } => {
             secret_toolkit::permit::validate(
                 deps,
                 "revoked_permits",
@@ -59,12 +56,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 None,
             )?;
 
-            if !permit.check_permission(&RecordPermissions::View) {
-                // return Err(ContractError::InvalidPermit);
-                return Err(StdError::generic_err("Invalid Permit"));
+            if !permit.check_permission(&RecordPermissions::ViewById {
+                record_id: record_id.clone(),
+            }) {
+                return Err(ContractError::InvalidPermit);
             }
 
-            query::get_records(deps, 0)
+            query::get_record_by_id(deps, record_id)
         }
     }
 }
@@ -98,16 +96,18 @@ mod execute {
 mod query {
     use super::*;
 
-    pub fn get_records(deps: Deps, page: u32) -> StdResult<Binary> {
-        let records = RECORD_STORE.paging(deps.storage, page, 5).unwrap();
-        Ok(to_binary(&records).unwrap())
+    pub fn get_record_by_id(deps: Deps, record_id: String) -> Result<Binary, ContractError> {
+        let record = RECORD_STORE.get(deps.storage, &record_id);
+        match record {
+            Some(record) => Ok(to_binary(&record).unwrap()),
+            None => Err(ContractError::NonexistentRecord { id: record_id }),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{
-        from_binary,
         testing::{mock_dependencies, mock_env, mock_info},
         Addr,
     };
@@ -201,21 +201,5 @@ mod tests {
             },
         )
         .unwrap();
-
-        let resp = query(deps.as_ref(), env.clone(), QueryMsg::Records { page: 0 }).unwrap();
-        let resp: Vec<(String, Record)> = from_binary(&resp).unwrap();
-
-        assert_eq!(
-            vec![(
-                "id".to_string(),
-                Record {
-                    title: "title".to_string(),
-                    timestamp: env.block.time,
-                    description: "description".to_string(),
-                    data: "data".to_string()
-                }
-            )],
-            resp
-        );
     }
 }

@@ -25,8 +25,10 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Records { page: u32 },
-    View { permit: Permit<RecordPermissions> },
+    ViewById {
+        permit: Permit<RecordPermissions>,
+        record_id: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -41,6 +43,6 @@ pub struct CallbackInfo {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum RecordPermissions {
-    View,
+    ViewById { record_id: String },
     Add,
 }
