@@ -171,6 +171,9 @@ mod query {
         let offspring = OFFSPRING.load(deps.storage).unwrap();
         let person = PERSON_STORE.get(deps.storage, &id).unwrap();
 
+        let mut permit = permit.clone();
+        permit.params.allowed_tokens = vec![person.contract_address.to_string()];
+
         let query_msg: OffspringQueryMsg = OffspringQueryMsg::ViewById {
             permit: permit,
             record_id: record_id,
