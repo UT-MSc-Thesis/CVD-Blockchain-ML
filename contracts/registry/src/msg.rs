@@ -47,6 +47,7 @@ pub enum QueryMsg {
 pub struct InfoResp {
     pub address: Addr,
     pub contract_address: Addr,
+    pub pubkey: String,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]

@@ -163,6 +163,7 @@ mod query {
                 let resp = InfoResp {
                     address: person.address,
                     contract_address: person.contract_address,
+                    pubkey: person.pubkey,
                 };
                 Ok(resp)
             }
@@ -327,7 +328,8 @@ mod tests {
             resp,
             InfoResp {
                 address: sample_address,
-                contract_address: Addr::unchecked("contract_address")
+                contract_address: Addr::unchecked("contract_address"),
+                pubkey: "".to_string()
             }
         );
     }
