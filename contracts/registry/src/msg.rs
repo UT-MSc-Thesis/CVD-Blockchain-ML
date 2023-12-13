@@ -17,6 +17,7 @@ pub enum ExecuteMsg {
     Register {
         id: String,
         address: Addr,
+        pubkey: String,
         key: String,
     },
     AddRecord {
@@ -53,6 +54,7 @@ pub struct InfoResp {
 pub struct OffspringInstantiateMsg {
     pub owner: Addr,
     pub owner_id: String,
+    pub owner_pubkey: String,
     pub key: String,
 }
 
@@ -66,6 +68,7 @@ pub struct OffspringResp {
     pub offspring_address: Addr,
     pub owner_id: String,
     pub owner_address: Addr,
+    pub owner_pubkey: String,
     pub key: String,
 }
 

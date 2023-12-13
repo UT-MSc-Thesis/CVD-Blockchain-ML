@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct Person {
     pub address: Addr,
     pub contract_address: Addr,
+    pub pubkey: String,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]

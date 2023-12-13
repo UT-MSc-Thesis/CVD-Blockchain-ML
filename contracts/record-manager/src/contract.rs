@@ -17,6 +17,7 @@ pub fn instantiate(
         offspring_address: env.contract.address,
         owner_address: msg.owner,
         owner_id: msg.owner_id,
+        owner_pubkey: msg.owner_pubkey,
         key: msg.key,
     };
 
@@ -141,6 +142,7 @@ mod tests {
             InstantiateMsg {
                 owner: Addr::unchecked("owner"),
                 owner_id: "John Doe".to_string(),
+                owner_pubkey: "".to_string(),
                 key: "".to_string(),
             },
         )
@@ -161,6 +163,7 @@ mod tests {
             InstantiateMsg {
                 owner: Addr::unchecked("owner"),
                 owner_id: "Alice".to_string(),
+                owner_pubkey: "".to_string(),
                 key: "password".to_string(),
             },
         )
@@ -179,6 +182,7 @@ mod tests {
             InstantiateMsg {
                 owner: Addr::unchecked("owner"),
                 owner_id: "Alice".to_string(),
+                owner_pubkey: "".to_string(),
                 key: "password".to_string(),
             },
         )

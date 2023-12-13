@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct InstantiateMsg {
     pub owner: Addr,
     pub owner_id: String,
+    pub owner_pubkey: String,
     pub key: String,
 }
 
@@ -38,6 +39,7 @@ pub struct CallbackInfo {
     pub offspring_address: Addr,
     pub owner_id: String,
     pub owner_address: Addr,
+    pub owner_pubkey: String,
     pub key: String,
 }
 

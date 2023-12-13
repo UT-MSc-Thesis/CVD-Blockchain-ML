@@ -30,9 +30,12 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Register { id, address, key } => {
-            execute::register(deps, env, info, id, address, key)
-        }
+        ExecuteMsg::Register {
+            id,
+            address,
+            pubkey,
+            key,
+        } => execute::register(deps, env, info, id, address, pubkey, key),
         ExecuteMsg::AddRecord {
             patient_id,
             record_id,
@@ -74,6 +77,7 @@ mod execute {
         info: MessageInfo,
         id: String,
         address: Addr,
+        pubkey: String,
         key: String,
     ) -> Result<Response, ContractError> {
         if OWNER.load(deps.storage).unwrap() != info.sender {
@@ -85,6 +89,7 @@ mod execute {
         let initmsg = OffspringInstantiateMsg {
             owner: address,
             owner_id: id,
+            owner_pubkey: pubkey,
             key: key,
         };
 
@@ -212,6 +217,7 @@ mod reply {
                         &Person {
                             address: resp.owner_address,
                             contract_address: resp.offspring_address,
+                            pubkey: resp.owner_pubkey,
                         },
                     )?;
 
@@ -279,6 +285,7 @@ mod tests {
             ExecuteMsg::Register {
                 id: sample_id.to_owned(),
                 address: sample_address.clone(),
+                pubkey: "".to_string(),
                 key: "".to_string(),
             },
         )
@@ -298,6 +305,7 @@ mod tests {
             ExecuteMsg::Register {
                 id: sample_id.to_owned(),
                 address: sample_address.clone(),
+                pubkey: "".to_string(),
                 key: "".to_string(),
             },
         )
