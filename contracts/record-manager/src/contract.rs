@@ -64,7 +64,7 @@ pub fn execute(
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
         QueryMsg::ViewById { permit, record_id } => {
-            secret_toolkit::permit::validate(
+            let account = secret_toolkit::permit::validate(
                 deps,
                 "revoked_permits",
                 &permit,
@@ -74,7 +74,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractErro
 
             if !permit.check_permission(&RecordPermissions::ViewById {
                 record_id: record_id.clone(),
-            }) {
+            }) || account != OWNER.load(deps.storage)?
+            {
                 return Err(ContractError::InvalidPermit);
             }
 
