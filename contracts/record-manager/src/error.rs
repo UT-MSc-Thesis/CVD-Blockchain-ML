@@ -7,7 +7,7 @@ pub enum ContractError {
     StdError(#[from] StdError),
     #[error("{sender} is not authorized to perform the requested action")]
     Unauthorized { sender: Addr },
-    #[error("Provided permit is not valid")]
+    #[error("Provided permit is not valid for the requested action")]
     InvalidPermit,
     #[error("No record with id {id} found")]
     NonexistentRecord { id: String },
